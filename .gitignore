@@ -1,0 +1,38 @@
+# Ignore compiled source #
+###################
+*.com
+*.class
+*.dll
+*.exe
+*.pdb
+*.dll.config
+*.cache
+*.suo
+
+# Ignore build output #
+#####################
+bin/
+obj/
+out/
+target/
+node_modules/
+
+# Ignore logs and temporary files #
+####################################
+*.log
+*.tmp
+*.bak
+*.swp
+
+# Ignore IDE-specific files and folders #
+##########################################
+.vs/
+.idea/
+.suo
+.sln.docstates
+
+# Ignore SAP-specific files and folders (if any) #
+##################################################
+*.sap
+*.snc
+*.srf
