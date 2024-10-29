@@ -2,33 +2,41 @@
 using DevicesManagement.Application;
 using DevicesManagement.Domain.Entities;
 using Newtonsoft.Json;
+using static Confluent.Kafka.ConfigPropertyNames;
 
 namespace DevicesManagement.Infrastructure.Kafka.Consumers
 {
     public class DeviceCommandsConsumer : BackgroundService
     {
         private readonly string topic;
-        private readonly IConsumer<string, string> _kafkaConsumer;
+        private IConsumer<string, string> _kafkaConsumer;
         //private readonly DeviceService _deviceService;
         private readonly IServiceProvider _serviceProvider;
+        private readonly int _retryConnect;
+        private readonly ConsumerConfig _consumerConfig;
 
         public DeviceCommandsConsumer(IConfiguration config, IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
-            var consumerConfig = new ConsumerConfig();
-            config.GetSection("Kafka:ConsumerSettings").Bind(consumerConfig);
+            _consumerConfig = new ConsumerConfig();
+            config.GetSection("Kafka:ConsumerSettings").Bind(_consumerConfig);
             this.topic = config.GetValue<string>("Kafka:DeviceCommandsTopic");
-            _kafkaConsumer = new ConsumerBuilder<string, string>(consumerConfig).Build();
+            _kafkaConsumer = new ConsumerBuilder<string, string>(_consumerConfig).Build();
+
+
+            _retryConnect = config.GetValue<int>("Kafka:RetryConnect");
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
-        { 
+        {
             return Task.Run(() => StartConsumerLoop(stoppingToken), stoppingToken);
         }
 
         private async Task StartConsumerLoop(CancellationToken cancellationToken)
         {
             _kafkaConsumer.Subscribe(this.topic);
+            var result = _kafkaConsumer.Consume(TimeSpan.FromMilliseconds(100));
+
 
 
             while (!cancellationToken.IsCancellationRequested)
